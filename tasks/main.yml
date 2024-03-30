@@ -1,0 +1,20 @@
+---
+
+- tags:
+    - setup-all
+    - setup-caddy
+    - install-all
+    - install-caddy
+  block:
+    - when: caddy_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+
+    - when: caddy_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
+
+- tags:
+    - setup-all
+    - setup-caddy
+  block:
+    - when: not caddy_enabled | bool
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
