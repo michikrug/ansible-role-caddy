@@ -29,6 +29,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			-p 443:443 \
 			--mount type=bind,src={{ caddy_config_path }},dst=/config \
 			--mount type=bind,src={{ caddy_data_path }},dst=/data \
+			--mount type=bind,src={{ caddy_log_path }},dst=/logs \
 			--mount type=bind,src={{ caddy_base_path }}/Caddyfile,dst=/etc/caddy/Caddyfile,readonly \
 			{% for arg in caddy_container_extra_arguments %}
 			{{ arg }} \
