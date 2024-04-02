@@ -1,25 +1,25 @@
 ---
 
-- name: Check existence of caddy systemd service
+- name: Check existence of Caddy systemd service
   ansible.builtin.stat:
     path: "{{ devture_systemd_docker_base_systemd_path }}/{{ caddy_identifier }}.service"
   register: caddy_service_stat
 
 - when: caddy_service_stat.stat.exists | bool
   block:
-    - name: Ensure caddy is stopped
+    - name: Ensure Caddy is stopped
       ansible.builtin.service:
         name: "{{ caddy_identifier }}"
         state: stopped
         enabled: false
         daemon_reload: true
 
-    - name: Ensure caddy systemd service doesn't exist
+    - name: Ensure Caddy systemd service doesn't exist
       ansible.builtin.file:
         path: "{{ devture_systemd_docker_base_systemd_path }}/{{ caddy_identifier }}"
         state: absent
 
-    - name: Ensure caddy base path doesn't exist
+    - name: Ensure Caddy base path doesn't exist
       ansible.builtin.file:
         path: "{{ caddy_base_path }}"
         state: absent

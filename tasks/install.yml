@@ -1,6 +1,6 @@
 ---
 
-- name: Ensure caddy paths exists
+- name: Ensure Caddy paths exists
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
@@ -13,7 +13,7 @@
     - "{{ caddy_data_path }}"
     - "{{ caddy_log_path }}"
 
-- name: Ensure caddy configuration files created
+- name: Ensure Caddy configuration files created
   ansible.builtin.template:
     src: "{{ role_path }}/templates/{{ item }}.j2"
     dest: "{{ caddy_base_path }}/{{ item }}"
@@ -23,7 +23,7 @@
   with_items:
     - Caddyfile
 
-- name: Ensure caddy image is pulled
+- name: Ensure Caddy image is pulled
   community.docker.docker_image:
     name: "{{ caddy_container_image }}"
     source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
@@ -34,12 +34,12 @@
   delay: "{{ devture_playbook_help_container_retries_delay }}"
   until: result is not failed
 
-- name: Ensure caddy container network is created
+- name: Ensure Caddy container network is created
   community.general.docker_network:
     name: "{{ caddy_container_network }}"
     driver: bridge
 
-- name: Ensure caddy systemd service installed
+- name: Ensure Caddy systemd service installed
   ansible.builtin.template:
     src: "{{ role_path }}/templates/systemd/caddy.service.j2"
     dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ caddy_identifier }}.service"
