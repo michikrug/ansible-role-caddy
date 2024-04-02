@@ -6,8 +6,8 @@ caddy_identifier: caddy
 
 caddy_version: 2.7.6
 
-caddy_uid: ''
-caddy_gid: ''
+caddy_uid: ""
+caddy_gid: ""
 
 caddy_base_path: "{{ caddy_identifier }}"
 caddy_config_path: "{{ caddy_base_path }}/config"

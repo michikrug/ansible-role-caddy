@@ -15,7 +15,7 @@
 
 - name: Ensure caddy configuration files created
   ansible.builtin.template:
-    src: "{{ role_path }}/templates/{{ item }}"
+    src: "{{ role_path }}/templates/{{ item }}.j2"
     dest: "{{ caddy_base_path }}/{{ item }}"
     mode: "0640"
     owner: "{{ caddy_uid }}"
