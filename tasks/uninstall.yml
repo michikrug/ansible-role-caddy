@@ -16,7 +16,7 @@
 
     - name: Ensure Caddy systemd service doesn't exist
       ansible.builtin.file:
-        path: "{{ devture_systemd_docker_base_systemd_path }}/{{ caddy_identifier }}"
+        path: "{{ devture_systemd_docker_base_systemd_path }}/{{ caddy_identifier }}.service"
         state: absent
 
     - name: Ensure Caddy base path doesn't exist
