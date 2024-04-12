@@ -12,6 +12,7 @@
     - "{{ caddy_config_path }}"
     - "{{ caddy_data_path }}"
     - "{{ caddy_log_path }}"
+    - "{{ caddy_www_path }}"
 
 - name: Ensure Caddy configuration files created
   ansible.builtin.template:
