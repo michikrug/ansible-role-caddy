@@ -23,6 +23,7 @@
     group: "{{ caddy_gid }}"
   with_items:
     - Caddyfile
+    - Dockerfile
 
 - name: Ensure Caddy image is pulled
   community.docker.docker_image:
@@ -34,6 +35,23 @@
   retries: "{{ devture_playbook_help_container_retries_count }}"
   delay: "{{ devture_playbook_help_container_retries_delay }}"
   until: result is not failed
+  when: not caddy_additional_modules
+
+- name: Remove Caddy image
+  community.docker.docker_image:
+    name: "{{ caddy_container_image }}"
+    state: absent
+  when: caddy_additional_modules
+
+- name: Ensure Caddy image is build
+  community.docker.docker_image_build:
+    name: "{{ caddy_container_image }}"
+    path: "{{ caddy_base_path }}"
+  register: result
+  retries: "{{ devture_playbook_help_container_retries_count }}"
+  delay: "{{ devture_playbook_help_container_retries_delay }}"
+  until: result is not failed
+  when: caddy_additional_modules
 
 - name: Ensure Caddy container network is created
   community.general.docker_network:

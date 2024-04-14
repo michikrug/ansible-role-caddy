@@ -1,0 +1,10 @@
+FROM caddy:{{ caddy_version }}-builder AS builder
+
+RUN xcaddy build \
+{% for module in caddy_additional_modules %}
+    --with {{ module }} \
+{% endfor %}
+
+FROM caddy:{{ caddy_version }}
+
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
