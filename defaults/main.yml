@@ -15,6 +15,8 @@ caddy_data_path: "{{ caddy_base_path }}/data"
 caddy_log_path: "{{ caddy_base_path }}/logs"
 caddy_www_path: "/var/www"
 
+caddy_enable_ipv6: no
+
 caddy_container_image_registry_prefix: docker.io/
 caddy_container_image: "{{ caddy_container_image_registry_prefix }}caddy:{{ caddy_version }}"
 caddy_container_image_force_pull: "{{ caddy_container_image.endswith(':latest') }}"

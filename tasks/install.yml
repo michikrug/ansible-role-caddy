@@ -57,6 +57,8 @@
   community.general.docker_network:
     name: "{{ caddy_container_network }}"
     driver: bridge
+    enable_ipv6: "{{ caddy_enable_ipv6 }}"
+
 
 - name: Ensure Caddy systemd service installed
   ansible.builtin.template:
