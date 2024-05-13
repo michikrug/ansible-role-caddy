@@ -15,6 +15,9 @@ caddy_data_path: "{{ caddy_base_path }}/data"
 caddy_log_path: "{{ caddy_base_path }}/logs"
 caddy_www_path: "/var/www"
 
+caddy_geoip_license_key: ""
+caddy_geoip_url: "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key={{ goaccess_geoip_license_key }}&suffix=tar.gz"
+
 caddy_enable_ipv6: no
 
 caddy_container_image_registry_prefix: docker.io/
