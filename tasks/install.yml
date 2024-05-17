@@ -71,7 +71,6 @@
     driver: bridge
     enable_ipv6: "{{ caddy_enable_ipv6 }}"
 
-
 - name: Ensure Caddy systemd service installed
   ansible.builtin.template:
     src: "{{ role_path }}/templates/systemd/caddy.service.j2"
