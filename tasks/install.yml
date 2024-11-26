@@ -69,6 +69,7 @@
   community.general.docker_network:
     name: "{{ caddy_container_network }}"
     driver: bridge
+    driver_options: "{{ devture_systemd_docker_base_container_networks_driver_options }}"
     enable_ipv6: "{{ caddy_enable_ipv6 }}"
 
 - name: Ensure Caddy systemd service installed
