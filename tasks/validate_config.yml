@@ -4,9 +4,19 @@
   ansible.builtin.fail:
     msg: >
       You need to define a required configuration setting (`{{ item }}`).
-  when: "vars[item] == ''"
-  with_items:
+  when: "vars[item] is undefined or vars[item] == ''"
+  loop:
     - caddy_identifier
     - caddy_uid
     - caddy_gid
     - caddy_container_network
+    - caddy_base_path
+    - caddy_container_image
+
+- name: Fail if GeoIP license key is empty but GeoIP features are used
+  ansible.builtin.fail:
+    msg: "caddy_geoip_license_key must be defined when using GeoIP features"
+  when: 
+    - caddy_geoip_license_key == ""
+    - caddy_geoip_url is defined
+    - "'geoip' in (caddy_additional_modules | default([]))"

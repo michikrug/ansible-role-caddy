@@ -16,7 +16,7 @@ caddy_log_path: "{{ caddy_base_path }}/logs"
 caddy_www_path: "/var/www"
 
 caddy_geoip_license_key: ""
-caddy_geoip_url: "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key={{ goaccess_geoip_license_key }}&suffix=tar.gz"
+caddy_geoip_url: "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key={{ caddy_geoip_license_key }}&suffix=tar.gz"
 
 caddy_enable_ipv6: no
 
@@ -45,4 +45,6 @@ caddy_systemd_required_services_list_auto: []
 caddy_systemd_required_services_list_custom: []
 
 # List of systemd services that caddy systemd service wants
-caddy_systemd_wanted_services_list: []
+caddy_systemd_wanted_services_list: "{{ caddy_systemd_wanted_services_list_default + caddy_systemd_wanted_services_list_custom }}"
+caddy_systemd_wanted_services_list_default: []
+caddy_systemd_wanted_services_list_custom: []

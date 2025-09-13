@@ -1,10 +1,14 @@
-FROM caddy:{{ caddy_version }}-builder AS builder
+FROM {{ caddy_container_image_registry_prefix }}caddy:{{ caddy_version }}-builder AS builder
 
+{% if caddy_additional_modules | length > 0 %}
 RUN xcaddy build \
 {% for module in caddy_additional_modules %}
-    --with {{ module }} \
+    --with {{ module }}{% if not loop.last %} \{% endif %}
 {% endfor %}
+{% endif %}
 
-FROM caddy:{{ caddy_version }}
+FROM {{ caddy_container_image_registry_prefix }}caddy:{{ caddy_version }}
 
+{% if caddy_additional_modules | length > 0 %}
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+{% endif %}

@@ -1,13 +1,13 @@
 ---
 
-- name: Ensure Caddy paths exists
+- name: Ensure Caddy paths exist
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
     mode: "0755"
     owner: "{{ caddy_uid }}"
     group: "{{ caddy_gid }}"
-  with_items:
+  loop:
     - "{{ caddy_base_path }}"
     - "{{ caddy_config_path }}"
     - "{{ caddy_data_path }}"
@@ -16,7 +16,7 @@
 
 - name: Ensure Caddy GeoIP Database is downloaded
   ansible.builtin.unarchive:
-    remote_src: yes
+    remote_src: true
     src: "{{ caddy_geoip_url }}"
     dest: "{{ caddy_data_path }}"
     creates: "{{ caddy_data_path }}/GeoLite2-Country.mmdb"
@@ -24,56 +24,78 @@
     group: "{{ caddy_gid }}"
     extra_opts:
       - --strip-components=1
+    timeout: 120
   when: caddy_geoip_license_key != ""
+  register: geoip_download_result
+  failed_when: false
+  
+- name: Warn if GeoIP download failed
+  ansible.builtin.debug:
+    msg: "Warning: GeoIP database download failed. This may affect geo-blocking features."
+  when: 
+    - caddy_geoip_license_key != ""
+    - geoip_download_result is defined
+    - geoip_download_result.failed | default(false)
 
-- name: Ensure Caddy configuration files created
+- name: Ensure Caddy configuration files are created
   ansible.builtin.template:
     src: "{{ role_path }}/templates/{{ item }}.j2"
     dest: "{{ caddy_base_path }}/{{ item }}"
     mode: "0644"
     owner: "{{ caddy_uid }}"
     group: "{{ caddy_gid }}"
-  with_items:
+    backup: true
+  loop:
     - Caddyfile
     - Dockerfile
 
 - name: Ensure Caddy image is pulled
   community.docker.docker_image:
     name: "{{ caddy_container_image }}"
-    source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
+    source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
     force_source: "{{ caddy_container_image_force_pull if ansible_version.major > 2 or ansible_version.minor >= 8 else omit }}"
-    force: "{{ omit if ansible_version.major > 2 or ansible_version.minor >= 8 else caddy_container_image_force_pull }}"
+    force: "{{ caddy_container_image_force_pull if ansible_version.major == 2 and ansible_version.minor < 8 else omit }}"
   register: result
-  retries: "{{ devture_playbook_help_container_retries_count }}"
-  delay: "{{ devture_playbook_help_container_retries_delay }}"
+  retries: "{{ devture_playbook_help_container_retries_count | default(2) }}"
+  delay: "{{ devture_playbook_help_container_retries_delay | default(5) }}"
   until: result is not failed
   when: not caddy_additional_modules
 
-- name: Remove Caddy image
+- name: Remove existing Caddy image (for custom build)
   community.docker.docker_image:
     name: "{{ caddy_container_image }}"
     state: absent
   when: caddy_additional_modules
 
-- name: Ensure Caddy image is build
+- name: Ensure custom Caddy image is built
   community.docker.docker_image_build:
     name: "{{ caddy_container_image }}"
     path: "{{ caddy_base_path }}"
+    pull: true
+    nocache: "{{ caddy_container_image_force_pull }}"
   register: result
-  retries: "{{ devture_playbook_help_container_retries_count }}"
-  delay: "{{ devture_playbook_help_container_retries_delay }}"
+  retries: "{{ devture_playbook_help_container_retries_count | default(2) }}"
+  delay: "{{ devture_playbook_help_container_retries_delay | default(5) }}"
   until: result is not failed
   when: caddy_additional_modules
 
 - name: Ensure Caddy container network is created
-  community.general.docker_network:
+  community.docker.docker_network:
     name: "{{ caddy_container_network }}"
     driver: bridge
-    driver_options: "{{ devture_systemd_docker_base_container_networks_driver_options }}"
+    driver_options: "{{ devture_systemd_docker_base_container_networks_driver_options | default({}) }}"
     enable_ipv6: "{{ caddy_enable_ipv6 }}"
 
-- name: Ensure Caddy systemd service installed
+- name: Ensure Caddy systemd service is installed
   ansible.builtin.template:
     src: "{{ role_path }}/templates/systemd/caddy.service.j2"
     dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ caddy_identifier }}.service"
     mode: "0644"
+    backup: true
+  notify: 
+    - reload systemd
+
+- name: Ensure systemd daemon is reloaded
+  ansible.builtin.systemd:
+    daemon_reload: true
+  when: ansible_service_mgr == 'systemd'

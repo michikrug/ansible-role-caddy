@@ -5,7 +5,9 @@
     path: "{{ devture_systemd_docker_base_systemd_path }}/{{ caddy_identifier }}.service"
   register: caddy_service_stat
 
-- when: caddy_service_stat.stat.exists | bool
+- when: 
+    - caddy_service_stat.stat.exists | bool
+    - ansible_service_mgr == 'systemd'
   block:
     - name: Ensure Caddy is stopped
       ansible.builtin.service:
@@ -18,6 +20,18 @@
       ansible.builtin.file:
         path: "{{ devture_systemd_docker_base_systemd_path }}/{{ caddy_identifier }}.service"
         state: absent
+
+    - name: Ensure Caddy container is stopped and removed
+      community.docker.docker_container:
+        name: "{{ caddy_identifier }}"
+        state: absent
+      ignore_errors: true
+
+    - name: Ensure Caddy container network is removed
+      community.docker.docker_network:
+        name: "{{ caddy_container_network }}"
+        state: absent
+      ignore_errors: true
 
     - name: Ensure Caddy base path doesn't exist
       ansible.builtin.file:
