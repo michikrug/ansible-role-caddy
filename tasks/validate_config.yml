@@ -4,7 +4,7 @@
   ansible.builtin.fail:
     msg: >
       You need to define a required configuration setting (`{{ item }}`).
-  when: "vars[item] is undefined or vars[item] == ''"
+  when: "lookup('vars', item) is undefined or lookup('vars', item) == ''"
   loop:
     - caddy_identifier
     - caddy_uid
