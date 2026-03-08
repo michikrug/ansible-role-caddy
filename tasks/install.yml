@@ -59,13 +59,13 @@
   retries: "{{ devture_playbook_help_container_retries_count | default(2) }}"
   delay: "{{ devture_playbook_help_container_retries_delay | default(5) }}"
   until: result is not failed
-  when: not caddy_additional_modules
+  when: caddy_additional_modules | length == 0
 
 - name: Remove existing Caddy image (for custom build)
   community.docker.docker_image:
     name: "{{ caddy_container_image }}"
     state: absent
-  when: caddy_additional_modules
+  when: caddy_additional_modules | length > 0
 
 - name: Ensure custom Caddy image is built
   community.docker.docker_image_build:
@@ -77,7 +77,7 @@
   retries: "{{ devture_playbook_help_container_retries_count | default(2) }}"
   delay: "{{ devture_playbook_help_container_retries_delay | default(5) }}"
   until: result is not failed
-  when: caddy_additional_modules
+  when: caddy_additional_modules | length > 0
 
 - name: Ensure Caddy container network is created
   community.docker.docker_network:
@@ -92,10 +92,8 @@
     dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ caddy_identifier }}.service"
     mode: "0644"
     backup: true
-  notify: 
-    - reload systemd
 
 - name: Ensure systemd daemon is reloaded
   ansible.builtin.systemd:
     daemon_reload: true
-  when: ansible_service_mgr == 'systemd'
+  when: ansible_facts["service_mgr"] == 'systemd'

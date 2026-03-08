@@ -28,6 +28,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			--publish 80:80 \
 			--publish 443:443 \
 			--publish 443:443/udp \
+			--mount type=tmpfs,dst=/tmp \
 			--mount type=bind,src={{ caddy_www_path }},dst=/var/www,readonly \
 			--mount type=bind,src={{ caddy_config_path }},dst=/config \
 			--mount type=bind,src={{ caddy_data_path }},dst=/data \
