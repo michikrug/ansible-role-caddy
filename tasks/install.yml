@@ -14,28 +14,38 @@
     - "{{ caddy_log_path }}"
     - "{{ caddy_www_path }}"
 
-- name: Ensure Caddy GeoIP Database is downloaded
+- name: Ensure Caddy GeoIP archives are downloaded
+  ansible.builtin.shell:
+    cmd: curl -fsSL -u "$MM_AUTH" -o "/tmp/{{ item }}.tar.gz" "{{ caddy_geoip_url }}"
+  environment:
+    MM_AUTH: "{{ caddy_geoip_account_id }}:{{ caddy_geoip_license_key }}"
+  loop: "{{ caddy_geoip_editions }}"
+  when: caddy_geoip_account_id != "" and caddy_geoip_license_key != ""
+  register: caddy_geoip_download
+  failed_when: false
+  changed_when: caddy_geoip_download.rc == 0
+
+- name: Ensure Caddy GeoIP databases are extracted
   ansible.builtin.unarchive:
     remote_src: true
-    src: "{{ caddy_geoip_url }}"
+    src: "/tmp/{{ item }}.tar.gz"
     dest: "{{ caddy_data_path }}"
-    creates: "{{ caddy_data_path }}/GeoLite2-Country.mmdb"
     owner: "{{ caddy_uid }}"
     group: "{{ caddy_gid }}"
     extra_opts:
       - --strip-components=1
-    timeout: 120
-  when: caddy_geoip_license_key != ""
-  register: geoip_download_result
-  failed_when: false
-  
-- name: Warn if GeoIP download failed
-  ansible.builtin.debug:
-    msg: "Warning: GeoIP database download failed. This may affect geo-blocking features."
-  when: 
-    - caddy_geoip_license_key != ""
-    - geoip_download_result is defined
-    - geoip_download_result.failed | default(false)
+  loop: "{{ caddy_geoip_download.results | selectattr('rc', 'defined') | selectattr('rc', 'eq', 0) | map(attribute='item') | list }}"
+
+- name: Check that Caddy GeoIP databases are present
+  ansible.builtin.stat:
+    path: "{{ caddy_data_path }}/{{ item }}.mmdb"
+  loop: "{{ caddy_geoip_editions }}"
+  register: caddy_geoip_stat
+
+- name: Fail if Caddy GeoIP databases are missing
+  ansible.builtin.fail:
+    msg: "Missing GeoIP database(s): {{ caddy_geoip_stat.results | rejectattr('stat.exists') | map(attribute='item') | join(', ') }}. Check caddy_geoip_account_id/caddy_geoip_license_key; Caddy will refuse to start if a site references them."
+  when: caddy_geoip_stat.results | rejectattr('stat.exists') | list | length > 0
 
 - name: Ensure Caddy configuration files are created
   ansible.builtin.template:

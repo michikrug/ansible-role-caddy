@@ -15,8 +15,12 @@ caddy_data_path: "{{ caddy_base_path }}/data"
 caddy_log_path: "{{ caddy_base_path }}/logs"
 caddy_www_path: "/var/www"
 
+caddy_geoip_account_id: ""
 caddy_geoip_license_key: ""
-caddy_geoip_url: "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-Country&license_key={{ caddy_geoip_license_key }}&suffix=tar.gz"
+caddy_geoip_url: "https://download.maxmind.com/geoip/databases/{{ item }}/download?suffix=tar.gz"
+caddy_geoip_editions:
+  - GeoLite2-Country
+  - GeoLite2-ASN
 
 caddy_enable_ipv6: no
 
